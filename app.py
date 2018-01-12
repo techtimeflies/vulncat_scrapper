@@ -17,7 +17,7 @@ def parse_categories(soup):
         category = data["data-name"].replace("+"," ")
         link = "https://vulncat.fortify.com/en/weakness?category={}".format(data['data-name'])
         print(f"{category}*\nHyper-Link:{link}*")
-        if index<=3:
+        if index<=10:
             get_issue_detail(link)
         else:
             return
@@ -53,11 +53,15 @@ def parse_issue_data(url):
 
     try:
         new_soup=BeautifulSoup(r.text,"html.parser")
-        html = new_soup.find(class_="t")
-        print("\n\nSummary\n" + html.text +"*")
+        content = new_soup.find(class_="tab-content")
+        
+        sections = content.find_all(class_="sub-title")
 
-        html = new_soup.find(class_="detail-hidden")
-        print(html.text + "*")
+        if sections:
+            for s in sections:
+                print(s.text + "\n")
+                metadata = s.findNext()
+                print(metadata.text.replace("[", "\n[").replace(". ", ".\n\n") +"\n\n")
 
     except Exception as err:
         print("--------ERROR!!! Unable to get explanation of vulnerability")
