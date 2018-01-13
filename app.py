@@ -24,37 +24,19 @@ def parse_categories(soup):
 
         index+=1
 
-def get_issue_detail(url):
-    r = requests.get(url=url)
-    if r is None:
-        print("Link does not exist")
-        return
+def get_issue_detail(url, soup:BeautifulSoup):
+    
+    links = soup.find_all(class_="external-link")
 
-    try:
-        soup=BeautifulSoup(r.text,"html.parser")
-        link = get_detail_link(soup)
-        parse_issue_data(link)
-
-    except Exception as err:
-        print("--------ERROR!!! Unable to get explanation of vulnerability")
-        print(err)
-
-
-def get_detail_link(soup):
-    link = soup.find(class_="external-link")
-    return f"https://vulncat.fortify.com{link['href']}"
-
+    for link in links:
+        parse_issue_data(f"{url}{link['href']}")
 
 def parse_issue_data(url):
-    r = requests.get(url=url)
-    if r is None:
-        print("Link does not exist")
-        return
-
     try:
-        new_soup=BeautifulSoup(r.text,"html.parser")
-        content = new_soup.find(class_="tab-content")
-        
+        soup=order_soup(url)
+        title = soup.find(class_="detail-title")
+        print(title.text)
+        content = soup.find(class_="tab-content")
         sections = content.find_all(class_="sub-title")
 
         if sections:
@@ -70,6 +52,8 @@ def parse_issue_data(url):
 
 def navigatePages(soup, base_url):
     if soup is None: return
+
+    get_issue_detail(base_url, soup)
 
     pagination = soup.find(class_="pagination")
 
@@ -104,14 +88,13 @@ def order_soup(url:str):
     finally:
         return soup
 
+
 if __name__=="__main__":
 
     base_url="https://vulncat.fortify.com"
     url = "https://vulncat.fortify.com/en/weakness?q="
     category_url="https://vulncat.fortify.com/en/weakness?category="
-    
-    soup = order_soup(url)
 
-    #parse_categories(soup)
+    soup = order_soup(url)
 
     navigatePages(soup, base_url)
