@@ -92,6 +92,18 @@ def navigatePages(soup, base_url):
     else:
         print("No more links")
             
+def order_soup(url:str):
+    soup:BeautifulSoup=None
+    try:
+        r=requests.get(url)
+        soup=BeautifulSoup(r.text, 'html.parser')
+    except requests.exceptions.RequestException as ex:
+        print("There was an error with the request")
+    except Exception as ex:
+        print("An unknown exception has occured")
+    finally:
+        return soup
+
 if __name__=="__main__":
 
     base_url="https://vulncat.fortify.com"
