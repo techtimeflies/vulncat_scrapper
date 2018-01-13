@@ -109,10 +109,8 @@ if __name__=="__main__":
     base_url="https://vulncat.fortify.com"
     url = "https://vulncat.fortify.com/en/weakness?q="
     category_url="https://vulncat.fortify.com/en/weakness?category="
-
-    r = requests.get(url=url)
-
-    soup = BeautifulSoup(r.text, 'html.parser')
+    
+    soup = order_soup(url)
 
     #parse_categories(soup)
 
