@@ -50,7 +50,7 @@ def scrape_filters(filtername):
     except Exception as ex:
         logging.error(ex)
     finally:
-        return
+        return filter_list
             
 def get_issue_detail(url, soup:BeautifulSoup):
     
