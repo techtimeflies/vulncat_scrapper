@@ -5,18 +5,22 @@ import logging
 import os
 import json
 
-loglevel='DEBUG'
+base_url = "https://vulncat.fortify.com/en/weakness?q="
 logpath=f'{os.getcwd()}/logs'
 
-# create the log directory if it does not exist
-if os.path.exists(logpath) == False: os.mkdir(logpath)
-
-logging.basicConfig(
-    level=loglevel,
-    filename=f'{logpath}/app.log', 
-    format='%(asctime)s - %(levelname)s - %(message)s', 
-    datefmt='%a, %d %b %Y %H:%M:%S'
-    )
+def scrape_url(url):
+    soup:BeautifulSoup=None
+    try:
+        r=requests.get(url)
+        soup=BeautifulSoup(r.text, 'html.parser')
+    except requests.exceptions.RequestException as ex:
+        logging.warning("There was an error with the request")
+        logging.error(ex)
+    except Exception as ex:
+        logging.warning("An unknown exception has occured")
+        logging.error(ex)
+    finally:
+        return soup
 
 def get_categories(html):
     """"""
@@ -25,8 +29,9 @@ def get_categories(html):
     return soup.find("input", attrs={"data-filtername":"category"})
 
 
-def parse_categories(soup):
-        
+def parse_categories():
+    soup = scrape_url(base_url)
+
     logfile=f'{logpath}/categories.json'
     open(logfile, 'w').close()
     categories={}
@@ -57,7 +62,7 @@ def get_issue_detail(url, soup:BeautifulSoup):
 
 def parse_issue_data(url):
     try:
-        soup=order_soup(url)
+        soup=scrape_url(url)
         title = soup.find(class_="detail-title")
         print(title.text)
         content = soup.find(class_="tab-content")
@@ -100,30 +105,3 @@ def navigatePages(soup, base_url):
     else:
         print("No more links")
             
-def order_soup(url:str):
-    logging.info(f"scrapping '{url}'")
-    soup:BeautifulSoup=None
-    try:
-        r=requests.get(url)
-        soup=BeautifulSoup(r.text, 'html.parser')
-    except requests.exceptions.RequestException as ex:
-        logging.warning("There was an error with the request")
-        logging.error(ex)
-    except Exception as ex:
-        logging.warning("An unknown exception has occured")
-        logging.error(ex)
-    finally:
-        return soup
-
-
-if __name__=="__main__":
-
-    logging.debug(os.getcwd())
-    #logging.info('testing')
-    #base_url="https://vulncat.fortify.com"
-    url = "https://vulncat.fortify.com/en/weakness?q="
-    #category_url="https://vulncat.fortify.com/en/weakness?category="
-
-    soup = order_soup(url)
-
-    parse_categories(soup)
