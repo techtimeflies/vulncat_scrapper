@@ -1,5 +1,5 @@
 import pytest
-import app
+from vulncat import vulncat
 
 url="http://www.google.com"
 

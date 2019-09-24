@@ -1,6 +1,22 @@
 import requests
 import re
 from bs4 import BeautifulSoup
+import logging
+import os
+import json
+
+loglevel='DEBUG'
+logpath=f'{os.getcwd()}/logs'
+
+# create the log directory if it does not exist
+if os.path.exists(logpath) == False: os.mkdir(logpath)
+
+logging.basicConfig(
+    level=loglevel,
+    filename=f'{logpath}/app.log', 
+    format='%(asctime)s - %(levelname)s - %(message)s', 
+    datefmt='%a, %d %b %Y %H:%M:%S'
+    )
 
 def get_categories(html):
     """"""
@@ -10,20 +26,28 @@ def get_categories(html):
 
 
 def parse_categories(soup):
-    index=0
-    for data in soup.find_all("input", attrs={"data-filtername":"category"}):
-    #print(data["data-name"].replace("+"," "))
+        
+    logfile=f'{logpath}/categories.json'
+    open(logfile, 'w').close()
+    categories={}
 
-        category = data["data-name"].replace("+"," ")
-        link = "https://vulncat.fortify.com/en/weakness?category={}".format(data['data-name'])
-        print(f"{category}\nHyper-Link:{link}")
-        if index<=10:
-            get_issue_detail(link)
-        else:
-            return
+    try:
+        for data in soup.find_all("input", attrs={"data-filtername":"category"}):
+        #print(data["data-name"].replace("+"," "))
 
-        index+=1
+            category = data["data-name"].replace("+"," ")
+            logging.info(f"found category '{category}'")
+            link = "https://vulncat.fortify.com/en/weakness?category={}".format(data['data-name'])
+            #print(f"{category}\nHyper-Link:{link}")
+            categories[category]=link
 
+            with open(logfile, 'w+') as f:
+                f.write(json.dumps(categories))
+    except Exception as ex:
+        logging.error(ex)
+    finally:
+        return
+            
 def get_issue_detail(url, soup:BeautifulSoup):
     
     links = soup.find_all(class_="external-link")
@@ -77,24 +101,29 @@ def navigatePages(soup, base_url):
         print("No more links")
             
 def order_soup(url:str):
+    logging.info(f"scrapping '{url}'")
     soup:BeautifulSoup=None
     try:
         r=requests.get(url)
         soup=BeautifulSoup(r.text, 'html.parser')
     except requests.exceptions.RequestException as ex:
-        print("There was an error with the request")
+        logging.warning("There was an error with the request")
+        logging.error(ex)
     except Exception as ex:
-        print("An unknown exception has occured")
+        logging.warning("An unknown exception has occured")
+        logging.error(ex)
     finally:
         return soup
 
 
 if __name__=="__main__":
 
-    base_url="https://vulncat.fortify.com"
+    logging.debug(os.getcwd())
+    #logging.info('testing')
+    #base_url="https://vulncat.fortify.com"
     url = "https://vulncat.fortify.com/en/weakness?q="
-    category_url="https://vulncat.fortify.com/en/weakness?category="
+    #category_url="https://vulncat.fortify.com/en/weakness?category="
 
     soup = order_soup(url)
 
-    navigatePages(soup, base_url)
+    parse_categories(soup)
