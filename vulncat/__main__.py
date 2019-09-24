@@ -4,7 +4,7 @@ import logging
 import os
 
 loglevel='DEBUG'
-logpath=f'{os.getcwd()}/logs'
+logpath=f'{os.getcwd()}/log'
 
 # create the log directory if it does not exist
 if os.path.exists(logpath) == False: os.mkdir(logpath)
@@ -20,9 +20,17 @@ logging.basicConfig(
 parser = argparse.ArgumentParser(description='Vulncat web parser cli')
 
 #parser.add_argument('-h', "--help", help='cli helper')
-parser.add_argument('-l', '--list', action='store_true', help='list all the categories of vulnerabilities')
+parser.add_argument('-category', action='store_true', help='list all the categories of vulnerabilities')
+parser.add_argument('-kingdom', action='store_true', help='list all the kingdoms')
+parser.add_argument('-language', action='store_true', help='list all the languages')
 
 args = parser.parse_args()
 
-if args.list:
-    vulncat.parse_categories()
+if args.category:
+    vulncat.scrape_filters('category')
+
+if args.kingdom:
+    vulncat.scrape_filters('kingdom')
+
+if args.language:
+    vulncat.scrape_filters('codelang')

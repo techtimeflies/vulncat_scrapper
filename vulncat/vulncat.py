@@ -6,7 +6,7 @@ import os
 import json
 
 base_url = "https://vulncat.fortify.com/en/weakness?q="
-logpath=f'{os.getcwd()}/logs'
+logpath=f'{os.getcwd()}/log'
 
 def scrape_url(url):
     soup:BeautifulSoup=None
@@ -22,32 +22,31 @@ def scrape_url(url):
     finally:
         return soup
 
-def get_categories(html):
+def get_filter_list(html):
     """"""
     soup = BeautifulSoup(html, 'html.parser')
 
     return soup.find("input", attrs={"data-filtername":"category"})
 
-
-def parse_categories():
+def scrape_filters(filtername):
     soup = scrape_url(base_url)
 
-    logfile=f'{logpath}/categories.json'
+    logfile=f'{logpath}/{filtername}.json'
     open(logfile, 'w').close()
-    categories={}
+    filter_list={}
 
     try:
-        for data in soup.find_all("input", attrs={"data-filtername":"category"}):
+        for data in soup.find_all("input", attrs={"data-filtername":filtername}):
         #print(data["data-name"].replace("+"," "))
 
-            category = data["data-name"].replace("+"," ")
-            logging.info(f"found category '{category}'")
-            link = "https://vulncat.fortify.com/en/weakness?category={}".format(data['data-name'])
+            key = data["data-name"].replace("+"," ")
+            logging.info(f"found category '{key}'")
+            link = f"https://vulncat.fortify.com/en/weakness?{filtername}={data['data-name']}"
             #print(f"{category}\nHyper-Link:{link}")
-            categories[category]=link
+            filter_list[key]=link
 
             with open(logfile, 'w+') as f:
-                f.write(json.dumps(categories))
+                f.write(json.dumps(filter_list))
     except Exception as ex:
         logging.error(ex)
     finally:
