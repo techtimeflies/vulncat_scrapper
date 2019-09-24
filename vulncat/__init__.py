@@ -1,0 +1,1 @@
+name = 'vulncat_scrapper'
